@@ -1,0 +1,42 @@
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+[ $compiler == dart2js ]
+math/*: Skip
+mirrors/*: Skip
+
+[ $compiler == dart2js && $jscl ]
+async/future_test: Fail # Timer interface not supported; dartbug.com/7728.
+async/slow_consumer2_test: Fail # Timer interface not supported; dartbug.com/7728.
+async/slow_consumer3_test: Fail # Timer interface not supported; dartbug.com/7728.
+async/slow_consumer_test: Fail # Timer interface not supported; dartbug.com/7728.
+async/stream_from_iterable_test: Fail # Timer interface not supported; dartbug.com/7728.
+
+[ $compiler == dart2js && $browser ]
+crypto/sha256_test: Slow, Pass
+crypto/sha1_test: Slow, Pass
+
+[ $compiler == dart2dart ]
+# Skip until we stabilize language tests.
+*: Skip
+
+[ $compiler == dartc ]
+# lib issue 6322
+crypto/hmac_sha1_test: Fail
+crypto/hmac_sha256_test: Fail
+
+[ $runtime == vm && $arch == x64 ]
+async/slow_consumer2_test: Fail # Issue 7726
+
+[ $arch == arm ]
+*: Skip
+
+[ $arch == simarm ]
+*: Skip
+
+[ $arch == mips ]
+*: Skip
+
+[ $arch == simmips ]
+*: Skip

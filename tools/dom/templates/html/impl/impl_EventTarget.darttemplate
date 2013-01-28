@@ -1,0 +1,81 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of html;
+
+/**
+ * Base class that supports listening for and dispatching browser events.
+ *
+ * Events can either be accessed by string name (using the indexed getter) or by
+ * getters exposed by subclasses. Use the getters exposed by subclasses when
+ * possible for better compile-time type checks.
+ *
+ * Using an indexed getter:
+ *     events['mouseover'].add((e) => print("Mouse over!"));
+ *
+ * Using a getter provided by a subclass:
+ *     elementEvents.mouseOver.add((e) => print("Mouse over!"));
+ */
+class Events {
+  /* Raw event target. */
+  final EventTarget _ptr;
+
+  Events(this._ptr);
+
+  EventListenerList operator [](String type) {
+    return new EventListenerList(_ptr, type);
+  }
+}
+
+/**
+ * Supports adding, removing, and dispatching events for a specific event type.
+ */
+class EventListenerList {
+
+  final EventTarget _ptr;
+  final String _type;
+
+  EventListenerList(this._ptr, this._type);
+
+  // TODO(jacobr): implement equals.
+
+  EventListenerList add(EventListener listener,
+      [bool useCapture = false]) {
+    _add(listener, useCapture);
+    return this;
+  }
+
+  EventListenerList remove(EventListener listener,
+      [bool useCapture = false]) {
+    _remove(listener, useCapture);
+    return this;
+  }
+
+  bool dispatch(Event evt) {
+    return _ptr.dispatchEvent(evt);
+  }
+
+  void _add(EventListener listener, bool useCapture) {
+    _ptr.$dom_addEventListener(_type, listener, useCapture);
+  }
+
+  void _remove(EventListener listener, bool useCapture) {
+    _ptr.$dom_removeEventListener(_type, listener, useCapture);
+  }
+}
+
+/**
+ * Base class for all browser objects that support events.
+ *
+ * Use the [on] property to add, remove, and dispatch events (rather than
+ * [$dom_addEventListener], [$dom_dispatchEvent], and
+ * [$dom_removeEventListener]) for compile-time type checks and a more concise
+ * API.
+ */
+$(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  Events get on => new Events(this);
+$!MEMBERS
+}

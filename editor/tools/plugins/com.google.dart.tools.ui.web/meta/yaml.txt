@@ -1,0 +1,10 @@
+dependencies
+description
+name
+version
+author
+authors
+homepage
+url
+ref
+

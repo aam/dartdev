@@ -1,0 +1,79 @@
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Run this test manually to verify that the fixnum library produces
+# the same results as native ints on a set of directed and random inputs.
+# Skip it when running automated tests because it times out.  This
+# test only makes sense on runtimes that support 64-bit integer
+# arithmetic natively, i.e., the VM.
+fixnum/test/int_64_vm_test: Skip
+
+[$compiler == dart2dart]
+*: Skip
+
+# Don't compile tests that use dart:io to JS
+[ $compiler == dart2js || $compiler == dart2dart ]
+http/test/*: Skip
+oauth2/test/*: Skip
+path/test/*: Skip
+
+# Skip tests that use local file access if we're running in any browser
+[ $runtime == opera || $runtime == ff || $runtime == ie9 || $runtime == dartium || $runtime == chrome || $runtime == safari || $runtime == drt  || $runtime == jsshell]
+http/test/*: Skip
+oauth2/test/*: Skip
+path/test/*: Skip
+intl/test/date_time_format_file_even_test: Skip
+intl/test/date_time_format_file_odd_test: Skip
+intl/test/find_default_locale_standalone_test: Skip
+analyzer-experimental/test/options_test: Skip # Imports dart:io.
+
+[ $runtime == opera && $compiler == dart2js ]
+intl/test/find_default_locale_browser_test: Fail
+intl/test/date_time_format_http_request_test: Skip # Timeout.
+
+# Skip browser-specific Intl tests on VM
+[ $runtime == vm ]
+intl/test/find_default_locale_browser_test: Skip
+intl/test/date_time_format_http_request_test: Skip
+
+[ $runtime == vm && $system == windows ]
+intl/test/find_default_locale_standalone_test: Fail # Issue 8110
+
+# Skip http request tests on Dartium while resolving an odd
+# error there that causes the tests to timeout.
+[ $runtime == dartium || $runtime == drt ]
+intl/test/date_time_format_http_request_test: Skip
+
+[ $compiler == dart2js ]
+# Skip intl_message tests that use mirrors on dart2js until it's been
+# implemented there.
+intl/test/intl_message_test: Skip
+intl/test/intl_message_basic_example_test: Skip
+serialization/test/serialization_test: Skip
+
+[ $compiler == dartc ]
+unittest/test/mock_regexp_negative_test: Fail
+unittest/test/mock_stepwise_negative_test: Fail
+
+# pkg/http issue 7458
+http/test/multipart_test: Fail
+
+
+[ $compiler == dart2js ]
+unittest/test/instance_test: Skip
+
+[ $compiler == none && $runtime == drt ]
+dartdoc/test/dartdoc_test: Skip # See dartbug.com/4541.
+
+[ $arch == arm ]
+*: Skip
+
+[ $arch == simarm ]
+*: Skip
+
+[ $arch == mips ]
+*: Skip
+
+[ $arch == simmips ]
+*: Skip

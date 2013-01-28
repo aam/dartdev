@@ -1,0 +1,135 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+part of html;
+
+$(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+$!MEMBERS
+  @DomName('Document.body')
+  BodyElement get body => document.$dom_body;
+
+  @DomName('Document.body')
+  void set body(BodyElement value) {
+    document.$dom_body = value;
+  }
+
+  @DomName('Document.caretRangeFromPoint')
+  Range caretRangeFromPoint(int x, int y) {
+    return document.$dom_caretRangeFromPoint(x, y);
+  }
+
+  @DomName('Document.elementFromPoint')
+  Element elementFromPoint(int x, int y) {
+    return document.$dom_elementFromPoint(x, y);
+  }
+
+  /**
+   * Checks if the getCssCanvasContext API is supported on the current platform.
+   *
+   * See also:
+   *
+   * * [getCssCanvasContext]
+   */
+$if DART2JS
+  static bool get supportsCssCanvasContext =>
+      JS('bool', '!!(document.getCSSCanvasContext)');
+$else
+  static bool get supportsCssCanvasContext => true;
+$endif
+
+
+  /**
+   * Gets a CanvasRenderingContext which can be used as the CSS background of an
+   * element.
+   *
+   * CSS:
+   *
+   *     background: -webkit-canvas(backgroundCanvas)
+   *
+   * Generate the canvas:
+   *
+   *     var context = document.getCssCanvasContext('2d', 'backgroundCanvas',
+   *         100, 100);
+   *     context.fillStyle = 'red';
+   *     context.fillRect(0, 0, 100, 100);
+   *
+   * See also:
+   *
+   * * [supportsCssCanvasContext]
+   * * [CanvasElement.getContext]
+   */
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  @DomName('Document.getCSSCanvasContext')
+  CanvasRenderingContext getCssCanvasContext(String contextId, String name,
+      int width, int height) {
+    return document.$dom_getCssCanvasContext(contextId, name, width, height);
+  }
+
+  @DomName('Document.head')
+  HeadElement get head => document.$dom_head;
+
+  @DomName('Document.lastModified')
+  String get lastModified => document.$dom_lastModified;
+
+  @DomName('Document.preferredStylesheetSet')
+  String get preferredStylesheetSet => document.$dom_preferredStylesheetSet;
+
+  @DomName('Document.referrer')
+  String get referrer => document.$dom_referrer;
+
+  @DomName('Document.selectedStylesheetSet')
+  String get selectedStylesheetSet => document.$dom_selectedStylesheetSet;
+  void set selectedStylesheetSet(String value) {
+    document.$dom_selectedStylesheetSet = value;
+  }
+
+  @DomName('Document.styleSheets')
+  List<StyleSheet> get styleSheets => document.$dom_styleSheets;
+
+  @DomName('Document.title')
+  String get title => document.$dom_title;
+
+  @DomName('Document.title')
+  void set title(String value) {
+    document.$dom_title = value;
+  }
+
+  @DomName('Document.webkitCancelFullScreen')
+  void webkitCancelFullScreen() {
+    document.$dom_webkitCancelFullScreen();
+  }
+
+  @DomName('Document.webkitExitFullscreen')
+  void webkitExitFullscreen() {
+    document.$dom_webkitExitFullscreen();
+  }
+
+  @DomName('Document.webkitExitPointerLock')
+  void webkitExitPointerLock() {
+    document.$dom_webkitExitPointerLock();
+  }
+
+  @DomName('Document.webkitFullscreenElement')
+  Element get webkitFullscreenElement => document.$dom_webkitFullscreenElement;
+
+  @DomName('Document.webkitFullscreenEnabled')
+  bool get webkitFullscreenEnabled => document.$dom_webkitFullscreenEnabled;
+
+  @DomName('Document.webkitHidden')
+  bool get webkitHidden => document.$dom_webkitHidden;
+
+  @DomName('Document.webkitIsFullScreen')
+  bool get webkitIsFullScreen => document.$dom_webkitIsFullScreen;
+
+  @DomName('Document.webkitPointerLockElement')
+  Element get webkitPointerLockElement =>
+      document.$dom_webkitPointerLockElement;
+
+  @DomName('Document.webkitVisibilityState')
+  String get webkitVisibilityState => document.$dom_webkitVisibilityState;
+}
