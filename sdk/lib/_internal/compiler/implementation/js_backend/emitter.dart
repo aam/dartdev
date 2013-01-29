@@ -121,7 +121,7 @@ class CodeEmitterTask extends CompilerTask {
       if (t is InterfaceType) {
         checkedClasses.add(t.element);
       } else if (t is TypedefType) {
-        checkedTypedefs.add(t.element);
+        checkedTypedefs.add(t);
       }
     });
   }
@@ -1199,9 +1199,8 @@ $lazyInitializerLogic
   }
 
   Iterable<Element> getTypedefChecksOn(DartType type) {
-    bool isSubtype(TypedefElement typedef) {
-      FunctionType typedefType =
-          typedef.computeType(compiler).unalias(compiler);
+    bool isSubtype(TypedefType typedef) {
+      FunctionType typedefType = typedef.unalias(compiler);
       return compiler.types.isSubtype(type, typedefType);
     }
     return checkedTypedefs.where(isSubtype).toList()
@@ -1445,12 +1444,26 @@ $lazyInitializerLogic
       String fieldName = namer.STATIC_CLOSURE_NAME_NAME;
       buffer.add('$fieldAccess.$fieldName$_=$_"$staticName"$N');
       getTypedefChecksOn(element.computeType(compiler)).forEach(
-        (Element typedef) {
-          String operator = namer.operatorIs(typedef);
+        (TypedefType typedef) {
+          FunctionType type = typedef.unalias(compiler);
+          print("isCheck for $typedef, signature=$type");
+          //
+          // TODO(aprelev@gmail.com) Generate is_test that
+          // supports type parameters:
+          //
+          //  ...$isType = $.matchingTypes(functionTypeSignature,
+          //                               other.actualSignature)
+          //
+          //
+          String operator = namer.operatorIs(typedef.element);
           buffer.add('$fieldAccess.$operator$_=${_}true$N');
+
+          var items = [];
+          print("retvalue: ${type.returnType}");
+          type.parameterTypes.forEach(
+              (e) => print("param: $e"));
         }
       );
-    }
   }
 
   void emitBoundClosureClassHeader(String mangledName,

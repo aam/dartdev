@@ -544,12 +544,20 @@ class TypedefType extends DartType {
   DartType unalias(Compiler compiler) {
     // TODO(ahe): This should be [ensureResolved].
     compiler.resolveTypedef(element);
+
     // TODO(johnniwinther): Perform substitution on the unaliased type.
-    return element.alias.unalias(compiler);
+    var result = element.alias.unalias(compiler);
+
+  //print("this=$this, element=$element element.type=${element.computeType(compiler)} --- unalias ---> $result");
+    var subst = result.subst(typeArguments, element.computeType(compiler).typeArguments);
+  //print("... subst=$subst");
+
+    return subst;
   }
 
   String toString() {
     StringBuffer sb = new StringBuffer();
+    sb.add('TypedefType: ');
     sb.add(name.slowToString());
     if (!isRaw) {
       sb.add('<');
@@ -582,6 +590,14 @@ class DynamicType extends InterfaceType {
   SourceString get name => const SourceString('dynamic');
 }
 
+class TypeBinding {
+  DartType parameter;
+  DartType argument;
+  TypeBinding(this.parameter, this.argument);
+
+  toString() => "$parameter := $argument";
+}
+
 class Types {
   final Compiler compiler;
   // TODO(karlklose): should we have a class Void?
@@ -598,8 +614,18 @@ class Types {
 
   Types.internal(this.compiler, this.voidType, this.dynamicType);
 
-  /** Returns true if t is a subtype of s */
   bool isSubtype(DartType t, DartType s) {
+    var result = _isSubtype(t, s, new LinkBuilder<DartType>(), 0);
+  //print("isSubtype $t isSubtype of $s? $result");
+    return result;
+  }
+
+  /** Returns true if t is a subtype of s */
+  bool _isSubtype(DartType t, DartType s, LinkBuilder<TypeBinding> bindings, int indent) {
+    var prefix="";
+    for (int i=0;i<indent;i++) prefix = "  $prefix";
+    indent+=1;
+  //print("${prefix}isSubtype $t isSubtype of $s?");
     if (identical(t, s) ||
         identical(t, dynamicType) ||
         identical(s, dynamicType) ||
@@ -611,6 +637,7 @@ class Types {
     }
     t = t.unalias(compiler);
     s = s.unalias(compiler);
+  //print("${prefix}isSubtype(unaliased) $t isSubtype of $s?");
 
     if (t is VoidType) {
       return false;
@@ -633,15 +660,37 @@ class Types {
       Link<DartType> tps = tf.parameterTypes;
       Link<DartType> sps = sf.parameterTypes;
       while (!tps.isEmpty && !sps.isEmpty) {
-        if (!isAssignable(tps.head, sps.head)) return false;
+        if (!_isAssignable(tps.head, sps.head, bindings, indent)) return false;
         tps = tps.tail;
         sps = sps.tail;
       }
       if (!tps.isEmpty || !sps.isEmpty) return false;
-      if (!isAssignable(sf.returnType, tf.returnType)) return false;
+      if (sf.returnType is! VoidType &&
+          !_isAssignable(sf.returnType, tf.returnType, bindings, indent)) {
+        return false;
+      }
       return true;
     } else if (t is TypeVariableType) {
-      if (s is !TypeVariableType) return false;
+    //print("${prefix}typechecker - isSubtype t=$t s=$s");
+      if (s is !TypeVariableType) {
+      //print("${prefix} isSubtype t=$t is TypeVariableType, s=$s: bindings=${bindings}");
+        for (Link<TypeBinding> binding in bindings.peekLink()) {
+        //print("${prefix} isSubtype t is TypeVariableType: looking at $binding");
+          if (binding.parameter == t) {
+          //print("${prefix} bindings contains($t)=${binding.parameter} equals to $s");
+            return _isAssignable(binding.argument, s, bindings, indent);
+          }
+        }
+
+        var tBound = t.element.bound;
+        if (tBound.element == compiler.objectClass) {
+          tBound = dynamicType;
+        }
+        if (!_isAssignable(tBound, s, bindings, indent)) return false;
+        bindings.addLast(new TypeBinding(t, s));
+      //print("${prefix}bindings[$t]=$s");
+        return true;
+      }
       return (identical(t.element, s.element));
     } else {
       throw 'internal error: unknown type kind';
@@ -649,9 +698,22 @@ class Types {
   }
 
   bool isAssignable(DartType r, DartType s) {
-    return isSubtype(r, s) || isSubtype(s, r);
+    var bindings = new LinkBuilder<DartType>();
+    return _isAssignable(r, s, bindings, 0);
   }
 
+  bool _isAssignable(DartType r, DartType s, LinkBuilder<DartType> bindings, int indent) {
+    var prefix = "";
+    for (int i=0;i<indent;i++) prefix = "  $prefix";
+  //print("${prefix}isAssignable $r =?= $s, bindings=$bindings");
+    indent+=1;
+    Link<TypeBinding> last = bindings.lastLink;
+    if (_isSubtype(r, s, bindings, indent)) return true;
+    // Remove everything that was added by previous isSubtype.
+    bindings.truncateTo(last);
+  //print("${prefix}isAssignable $r =?= $s, bindings=$bindings - 2nd try");
+    return _isSubtype(s, r, bindings, indent);
+  }
 
   /**
    * Helper method for performing substitution of a linked list of types.
@@ -784,6 +846,7 @@ class TypeCheckerVisitor implements Visitor<DartType> {
    */
   checkAssignable(Node node, DartType s, DartType t) {
     if (!types.isAssignable(s, t)) {
+    //print("not assignable: $s and $t");
       reportTypeWarning(node, MessageKind.NOT_ASSIGNABLE, [s, t]);
     }
   }
@@ -954,10 +1017,12 @@ class TypeCheckerVisitor implements Visitor<DartType> {
   }
 
   DartType visitSend(Send node) {
+  //print("typechecker - visitSend - $node");
     Element element = elements[node];
 
     if (Elements.isClosureSend(node, element)) {
       // TODO(karlklose): Finish implementation.
+    //print("typechecker - visitSend - 1");
       return types.dynamicType;
     }
 
@@ -966,8 +1031,10 @@ class TypeCheckerVisitor implements Visitor<DartType> {
 
     if (node.isOperator && identical(name, 'is')) {
       analyze(node.receiver);
+    //print("typechecker - visitSend - 2");
       return boolType;
     } else if (node.isOperator) {
+    //print("typechecker - visitSend - 3");
       final Node firstArgument = node.receiver;
       final DartType firstArgumentType = analyze(node.receiver);
       final arguments = node.arguments;
@@ -996,17 +1063,21 @@ class TypeCheckerVisitor implements Visitor<DartType> {
       fail(selector, 'unexpected operator ${name}');
 
     } else if (node.isPropertyAccess) {
+    //print("typechecker - visitSend - 4");
       if (node.receiver != null) {
         // TODO(karlklose): we cannot handle fields.
         return unhandledExpression();
       }
       if (element == null) return types.dynamicType;
-      return computeType(element);
+      var result = computeType(element);
+    //print("typechecker - result 4 - $result");
+      return result;
 
     } else if (node.isFunctionObjectInvocation) {
       fail(node.receiver, 'function object invocation unimplemented');
 
     } else {
+    //print("typechecker - visitSend - 5");
       FunctionType computeFunType() {
         if (node.receiver != null) {
           DartType receiverType = analyze(node.receiver);
@@ -1053,7 +1124,11 @@ class TypeCheckerVisitor implements Visitor<DartType> {
         }
       }
       FunctionType funType = computeFunType();
+    //print("typechecker - visitSend - funType=$funType");
+
       analyzeArguments(node, funType);
+
+    //print("typechecker - visitSend - from analyzeArguments: ${(funType != null) ? funType.returnType : types.dynamicType}");
       return (funType != null) ? funType.returnType : types.dynamicType;
     }
   }

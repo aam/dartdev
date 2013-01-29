@@ -116,13 +116,22 @@ class LinkBuilderImplementation<T> implements LinkBuilder<T> {
 
   LinkBuilderImplementation();
 
-  Link<T> toLink() {
-    if (head == null) return const Link();
-    lastLink.tail = const Link();
-    Link<T> link = head;
+  void clear() {
     lastLink = null;
     head = null;
+    length = 0;
+  }
+
+  Link<T> toLink() {
+    Link<T> link = peekLink();
+    clear();
     return link;
+  }
+
+  Link<T> peekLink() {
+    if (head == null) return const Link();
+    lastLink.tail = const Link();
+    return head;
   }
 
   void addLast(T t) {
@@ -136,5 +145,24 @@ class LinkBuilderImplementation<T> implements LinkBuilder<T> {
     lastLink = entry;
   }
 
+  void truncateTo(Link<T> newLast) {
+    if (newLast == null) {
+      clear();
+      return;
+    }
+    if (newLast.isEmpty) return;
+
+    Link<T> entry = newLast.tail;
+    while (!entry.isEmpty) {
+      length--;
+      entry = entry.tail;
+    }
+    newLast.tail = const Link();
+    lastLink = newLast;
+  }
+
   bool get isEmpty => length == 0;
+
+  toString() => "ord${peekLink()}=$length";
 }
+

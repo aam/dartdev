@@ -72,8 +72,83 @@ abstract class LinkBuilder<T> {
   factory LinkBuilder() = LinkBuilderImplementation;
 
   Link<T> toLink();
+  Link<T> peekLink();
   void addLast(T t);
+
+  LinkEntry<T> get lastLink;
+  void truncateTo(Link<T> newLast);
 
   final int length;
   final bool isEmpty;
+
+  toString() => "ord[${peekLink()}]=$length";
+  
+/*
+  static test1() {
+    LinkBuilder<String> builder = new LinkBuilder<String>();
+    builder.addLast("Mary");
+    builder.addLast("had");
+    Link<String> had = builder.lastLink;
+    builder.addLast("a little lamb");
+    print("$builder");
+    builder.truncateTo(had);
+    print("$builder");
+    builder.addLast("a red corvette");
+    print("$builder");
+  }
+
+  static test2() {
+    LinkBuilder<String> builder = new LinkBuilder<String>();
+    Link<String> head = builder.lastLink;
+    builder.addLast("Winne the Pooh");
+    builder.addLast("Eeyore");
+    print("$builder");
+    builder.truncateTo(head);
+    print("$builder");
+    builder.addLast("Piglet");
+    print("$builder");
+  }
+
+  static test3() {
+    LinkBuilder<String> builder = new LinkBuilder<String>();
+    Link<String> head = builder.lastLink;
+    print("$builder");
+    builder.truncateTo(head);
+    print("$builder");
+    builder.addLast("Pigs on the Wings");
+    print("$builder");
+  }
+
+  static test4() {
+    LinkBuilder<String> builder = new LinkBuilder<String>();
+    builder.addLast("1");
+    Link<String> head = builder.lastLink;
+    builder.addLast("2");
+    print("$builder");
+    builder.truncateTo(head);
+    print("$builder");
+    builder.addLast("3");
+    print("$builder");
+  }
+
+  static test5() {
+    LinkBuilder<String> builder = new LinkBuilder<String>();
+    builder.addLast("10");
+    builder.addLast("20");
+    Link<String> lastLink = builder.lastLink;
+    print("$builder");
+    builder.truncateTo(lastLink);
+    print("$builder");
+    builder.addLast("30");
+    print("$builder");
+  }
+
+  static test() {
+    test1();
+    test2();
+    test3();
+    test4();
+    test5();
+  }
+*/  
 }
